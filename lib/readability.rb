@@ -39,7 +39,7 @@ module Readability
       @html.css("script, style").each { |i| i.remove }
       remove_unlikely_candidates! if @remove_unlikely_candidates
       transform_misused_divs_into_paragraphs!
-      
+
       @candidates     = score_paragraphs(options[:min_text_length])
       @best_candidate = select_best_candidate(@candidates)
     end
@@ -55,9 +55,9 @@ module Readability
 
     def images(content=nil, reload=false)
       begin
-        require 'mini_magick'
+        require 'RMagick'
       rescue LoadError
-        raise "Please install mini_magick in order to use the #images feature."
+        raise "Please install RMagick in order to use the #images feature."
       end
 
       @best_candidate_has_image = false if reload
@@ -100,7 +100,8 @@ module Readability
 
     def load_image(url)
       begin
-        MiniMagick::Image.open(url)
+        img = Magick::Image.read(url).first
+        {:width => img.columns, :height => img.rows, :format => img.format}
       rescue => e
         debug("Image error: #{e}")
         nil
@@ -316,7 +317,7 @@ module Readability
       end
     end
 
-    def sanitize(node, candidates, options = {})    
+    def sanitize(node, candidates, options = {})
       node.css("h1, h2, h3, h4, h5, h6").each do |header|
         header.remove if class_weight(header) < 0 || get_link_density(header) > 0.33
       end
